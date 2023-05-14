@@ -5,10 +5,10 @@ const app = express();
 require("dotenv").config();
 
 //middleware
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.absippg.mongodb.net/?retryWrites=true&w=majority`;
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -24,9 +24,39 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     const carServices = client.db("carDoctor").collection("services");
+    const orderCollection = client.db("carDoctor").collection("orders");
     app.get("/services", async (req, res) => {
-      const cursor = carServices.find();
+      const option = {
+        projection: { title: 1, price: 1, img: 1 },
+      };
+      const cursor = carServices.find({}, option);
       const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await carServices.findOne(query);
+      res.send(result);
+    });
+
+    app.get("/check-out/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const option = {
+        projection: { title: 1, price: 1 },
+      };
+
+      const result = await carServices.findOne(query, option);
+      res.send(result);
+    });
+
+    app.post("/orders/:id", async (req, res) => {
+      const data = req.body;
+      const id = req.params.id;
+      const result = await orderCollection.insertOne(data);
       res.send(result);
     });
 
