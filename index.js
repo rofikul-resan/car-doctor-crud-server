@@ -46,7 +46,7 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const option = {
-        projection: { title: 1, price: 1 },
+        projection: { title: 1, price: 1, img: 1 },
       };
 
       const result = await carServices.findOne(query, option);
@@ -57,6 +57,16 @@ async function run() {
       const data = req.body;
       const id = req.params.id;
       const result = await orderCollection.insertOne(data);
+      res.send(result);
+    });
+
+    app.get("/booking", async (req, res) => {
+      const queryEmail = req.query.email;
+      const query = {
+        email: queryEmail,
+      };
+      const result = await orderCollection.find(query).toArray();
+      console.log(query);
       res.send(result);
     });
 
