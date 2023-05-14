@@ -66,7 +66,28 @@ async function run() {
         email: queryEmail,
       };
       const result = await orderCollection.find(query).toArray();
-      console.log(query);
+      res.send(result);
+    });
+
+    app.patch("/booking/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = req.body;
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          ...data,
+        },
+      };
+
+      const result = await orderCollection.updateOne(query, updateDoc);
+      console.log(id);
+      res.send(result);
+    });
+
+    app.delete("/booking/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
       res.send(result);
     });
 
