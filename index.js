@@ -4,7 +4,6 @@ const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const app = express();
 require("dotenv").config();
-console.log(process.env.JWT_SECRET);
 //middleware
 app.use(express.json());
 app.use(cors());
@@ -19,6 +18,24 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+const verifyJwt = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res.send({ error: true, message: "unauthorized access" });
+  }
+  const token = authorization.split(" ")[1];
+  jwt.verify(token, process.env.JWT_SECRET, (error, decoded) => {
+    if (error) {
+      return res
+        .status(401)
+        .send({ error: true, message: "unauthorized access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+  console.log(token);
+};
 
 async function run() {
   try {
@@ -61,8 +78,15 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/booking", async (req, res) => {
+    app.get("/booking", verifyJwt, async (req, res) => {
       const queryEmail = req.query.email;
+      const decoded = req.decoded;
+      console.log(decoded);
+      if (decoded.email !== queryEmail) {
+        return res
+          .status(401)
+          .send({ error: true, message: "unauthorized access" });
+      }
       const query = {
         email: queryEmail,
       };
@@ -95,8 +119,9 @@ async function run() {
     // jwt
     app.post("/jwt", (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: "1h" });
-      console.log(token);
+      const token = jwt.sign(user, process.env.JWT_SECRET, {
+        expiresIn: "10h",
+      });
       res.send({ token });
     });
 
