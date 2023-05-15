@@ -5,8 +5,8 @@ const port = process.env.PORT || 5000;
 const app = express();
 require("dotenv").config();
 //middleware
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.absippg.mongodb.net/?retryWrites=true&w=majority`;
@@ -17,6 +17,9 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  maxPoolSize: 10,
 });
 
 const verifyJwt = (req, res, next) => {
@@ -40,7 +43,12 @@ const verifyJwt = (req, res, next) => {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    await client.connect((err) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+    });
     const carServices = client.db("carDoctor").collection("services");
     const orderCollection = client.db("carDoctor").collection("orders");
     app.get("/services", async (req, res) => {
