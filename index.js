@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const port = process.env.PORT || 5000;
 const app = express();
@@ -8,7 +9,6 @@ require("dotenv").config();
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.absippg.mongodb.net/?retryWrites=true&w=majority`;
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -17,9 +17,9 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  maxPoolSize: 10,
+  // useNewUrlParser: true,
+  // useUnifiedTopology: true,
+  // minPoolSize: 10,
 });
 
 const verifyJwt = (req, res, next) => {
@@ -43,12 +43,12 @@ const verifyJwt = (req, res, next) => {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect((err) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-    });
+    // await client.connect((err) => {
+    //   if (err) {
+    //     console.log(err);
+    //     return;
+    //   }
+    // });
     const carServices = client.db("carDoctor").collection("services");
     const orderCollection = client.db("carDoctor").collection("orders");
     app.get("/services", async (req, res) => {
